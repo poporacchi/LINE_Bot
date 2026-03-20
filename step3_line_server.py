@@ -19,6 +19,7 @@ uvicorn step3_line_server:app --host 0.0.0.0 --port 8000
 https://あなたのドメイン/webhook
 """
 
+import asyncio
 import hashlib
 import hmac
 import os
@@ -27,6 +28,7 @@ from base64 import b64decode
 from contextlib import asynccontextmanager
 
 import anthropic
+import httpx
 import faiss
 import numpy as np
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -46,6 +48,7 @@ from sentence_transformers import SentenceTransformer
 # ── 設定 ────────────────────────────────────────────────
 LINE_CHANNEL_SECRET       = os.environ["LINE_CHANNEL_SECRET"]
 LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+HEALTHCHECKS_PING_URL     = os.environ.get("HEALTHCHECKS_PING_URL", "")
 
 INDEX_FILE      = "faq.index"
 META_FILE       = "faq_meta.pkl"
@@ -107,18 +110,28 @@ WELCOME_MESSAGE = (
     "💡「ヘルプ」と入力すると\n"
     "　使い方を表示します。\n\n"
     "⚠ 本ボットは参考情報の提供のみを\n"
-    "　目的としています。\n\n"
-    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-    "📖 使い方ガイド・サポート情報\n"
-    "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad\n\n"
-    "✉️ お問い合わせフォーム\n"
-    "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform"
+    "　目的としています。"
 )
 
 THINKING_MESSAGE = "🔍 回答を準備しております..."
 
 # グローバルリソース（起動時にロード）
 resources: dict = {}
+
+
+async def healthchecks_ping_loop():
+    """Healthchecks.ioに5分ごとにpingを送信"""
+    if not HEALTHCHECKS_PING_URL:
+        print("⚠ HEALTHCHECKS_PING_URL 未設定 — ping無効")
+        return
+    async with httpx.AsyncClient() as client:
+        while True:
+            try:
+                await client.get(HEALTHCHECKS_PING_URL, timeout=10)
+                print("💓 Healthchecks ping 送信完了")
+            except Exception as e:
+                print(f"⚠ Healthchecks ping 失敗: {e}")
+            await asyncio.sleep(900)  # 15分間隔
 
 
 @asynccontextmanager
@@ -133,7 +146,10 @@ async def lifespan(app: FastAPI):
     resources["parser"] = WebhookParser(LINE_CHANNEL_SECRET)
     resources["claude"] = anthropic.Anthropic()
     print(f"✅ 起動完了: FAQ {resources['index'].ntotal} 件")
+    # Healthchecks.io pingをバックグラウンドで開始
+    ping_task = asyncio.create_task(healthchecks_ping_loop())
     yield
+    ping_task.cancel()
     resources.clear()
 
 
@@ -246,12 +262,7 @@ async def webhook(
                 "▸ DBSの適応基準を教えて\n"
                 "▸ 嚥下障害への対応は？\n\n"
                 "⚠ 本ボットは参考情報の提供のみを\n"
-                "　目的としています。\n\n"
-                "┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-                "📖 使い方ガイド・サポート情報\n"
-                "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad\n\n"
-                "✉️ お問い合わせフォーム\n"
-                "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform"
+                "　目的としています。"
             )
         else:
             # 「考え中」メッセージを先に送信

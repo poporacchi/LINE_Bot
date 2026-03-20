@@ -9,3 +9,4 @@ faiss-cpu==1.8.0
 pandas==2.2.3
 numpy==1.26.4
 python-dotenv==1.0.1
+Pillow>=10.0.0
