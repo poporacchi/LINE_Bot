@@ -236,7 +236,7 @@ def generate_reply(user_query: str) -> str:
     )
     reply = response.content[0].text
 
-    if not results:
+    if not results or "範囲外" in reply:
         log_nofaq(user_query, reply)
 
     return reply
