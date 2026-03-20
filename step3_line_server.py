@@ -107,7 +107,12 @@ WELCOME_MESSAGE = (
     "💡「ヘルプ」と入力すると\n"
     "　使い方を表示します。\n\n"
     "⚠ 本ボットは参考情報の提供のみを\n"
-    "　目的としています。"
+    "　目的としています。\n\n"
+    "┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+    "📖 使い方ガイド・サポート情報\n"
+    "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad\n\n"
+    "✉️ お問い合わせフォーム\n"
+    "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform"
 )
 
 THINKING_MESSAGE = "🔍 回答を準備しております..."
@@ -241,7 +246,12 @@ async def webhook(
                 "▸ DBSの適応基準を教えて\n"
                 "▸ 嚥下障害への対応は？\n\n"
                 "⚠ 本ボットは参考情報の提供のみを\n"
-                "　目的としています。"
+                "　目的としています。\n\n"
+                "┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+                "📖 使い方ガイド・サポート情報\n"
+                "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad\n\n"
+                "✉️ お問い合わせフォーム\n"
+                "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform"
             )
         else:
             # 「考え中」メッセージを先に送信
