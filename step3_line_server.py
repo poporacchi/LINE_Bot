@@ -27,7 +27,9 @@ import os
 import pickle
 from base64 import b64decode
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+JST = timezone(timedelta(hours=9))
 
 import anthropic
 import httpx
@@ -206,7 +208,7 @@ def log_query():
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow(["日時"])
-        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        writer.writerow([datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")])
 
 
 def log_nofaq(query: str, reply: str):
@@ -216,7 +218,7 @@ def log_nofaq(query: str, reply: str):
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow(["日時", "質問", "回答"])
-        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), query, reply])
+        writer.writerow([datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S"), query, reply])
     print(f"📝 FAQ該当なしログ記録: {query[:30]}...")
 
 
