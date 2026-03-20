@@ -126,13 +126,15 @@ resources: dict = {}
 
 async def healthchecks_ping_loop():
     """Healthchecks.ioに5分ごとにpingを送信"""
-    if not HEALTHCHECKS_PING_URL:
+    url = os.environ.get("HEALTHCHECKS_PING_URL", "")
+    print(f"🔍 HEALTHCHECKS_PING_URL 確認: '{url[:20]}...' (len={len(url)})")
+    if not url:
         print("⚠ HEALTHCHECKS_PING_URL 未設定 — ping無効")
         return
     async with httpx.AsyncClient() as client:
         while True:
             try:
-                await client.get(HEALTHCHECKS_PING_URL, timeout=10)
+                await client.get(url, timeout=10)
                 print("💓 Healthchecks ping 送信完了")
             except Exception as e:
                 print(f"⚠ Healthchecks ping 失敗: {e}")
