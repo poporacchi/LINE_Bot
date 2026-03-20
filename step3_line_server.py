@@ -153,6 +153,9 @@ async def lifespan(app: FastAPI):
     resources["parser"] = WebhookParser(LINE_CHANNEL_SECRET)
     resources["claude"] = anthropic.Anthropic()
     print(f"✅ 起動完了: FAQ {resources['index'].ntotal} 件")
+    # デバッグ: 環境変数名の一覧を出力
+    env_keys = sorted(k for k in os.environ if not k.startswith(("_", "PATH")))
+    print(f"🔍 環境変数一覧: {env_keys}")
     # Healthchecks.io pingをバックグラウンドで開始
     ping_task = asyncio.create_task(healthchecks_ping_loop())
     yield
