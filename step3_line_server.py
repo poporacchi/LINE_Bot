@@ -20,12 +20,14 @@ https://あなたのドメイン/webhook
 """
 
 import asyncio
+import csv
 import hashlib
 import hmac
 import os
 import pickle
 from base64 import b64decode
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 import anthropic
 import httpx
@@ -55,6 +57,8 @@ META_FILE       = "faq_meta.pkl"
 MODEL_NAME      = "intfloat/multilingual-e5-small"
 TOP_K           = 5
 SCORE_THRESHOLD = 0.50
+NOFAQ_LOG_FILE  = "nofaq_log.csv"
+QUERY_LOG_FILE  = "query_log.csv"
 # ────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """あなたはパーキンソン病専門の医療従事者向けFAQボットです。
@@ -189,7 +193,29 @@ def format_context(results: list) -> str:
     return "\n".join(lines)
 
 
+def log_query():
+    """質問回数をCSVに記録"""
+    file_exists = os.path.exists(QUERY_LOG_FILE)
+    with open(QUERY_LOG_FILE, "a", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["日時"])
+        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+
+
+def log_nofaq(query: str, reply: str):
+    """FAQ該当なしの質問と回答をCSVに記録"""
+    file_exists = os.path.exists(NOFAQ_LOG_FILE)
+    with open(NOFAQ_LOG_FILE, "a", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["日時", "質問", "回答"])
+        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), query, reply])
+    print(f"📝 FAQ該当なしログ記録: {query[:30]}...")
+
+
 def generate_reply(user_query: str) -> str:
+    log_query()
     results = search_faq(user_query)
     context = format_context(results)
 
@@ -202,7 +228,12 @@ def generate_reply(user_query: str) -> str:
             "content": f"{context}\n\n【質問】\n{user_query}\n\n医療従事者向けに簡潔に回答してください。",
         }],
     )
-    return response.content[0].text
+    reply = response.content[0].text
+
+    if not results:
+        log_nofaq(user_query, reply)
+
+    return reply
 
 
 # ── LINEルーティング ─────────────────────────────────────

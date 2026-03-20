@@ -31,8 +31,8 @@ LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 BASE_URL = "https://api.line.me/v2/bot"
 DATA_URL = "https://api-data.line.me/v2/bot"
 
-NOTION_URL = "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad"
-FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform"
+NOTION_URL = "https://splashy-kryptops-b2f.notion.site/FAQ-LINE-3291d052b0a580c79d40d3ad81c78bad?openExternalBrowser=1"
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcs9N-n4vtf88899GxOEKVC5Z8D5jiS90DmaZIMAgio3H3FA/viewform?openExternalBrowser=1"
 
 HEADERS = {
     "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}",
