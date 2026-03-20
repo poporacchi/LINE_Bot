@@ -51,6 +51,7 @@ from sentence_transformers import SentenceTransformer
 LINE_CHANNEL_SECRET       = os.environ["LINE_CHANNEL_SECRET"]
 LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
 HEALTHCHECKS_PING_URL     = os.environ.get("HEALTHCHECKS_PING_URL", "")
+LOG_ACCESS_KEY            = os.environ.get("LOG_ACCESS_KEY", "")
 
 INDEX_FILE      = "faq.index"
 META_FILE       = "faq_meta.pkl"
@@ -333,3 +334,37 @@ def health():
         "status": "ok",
         "faq_count": resources.get("index", {}).ntotal if resources.get("index") else 0,
     }
+
+
+# ── ログ閲覧エンドポイント ────────────────────────────────
+
+def _verify_key(key: str):
+    """アクセスキーを検証"""
+    if not LOG_ACCESS_KEY:
+        raise HTTPException(status_code=403, detail="LOG_ACCESS_KEY not configured")
+    if key != LOG_ACCESS_KEY:
+        raise HTTPException(status_code=403, detail="Invalid access key")
+
+
+def _read_csv(filepath: str) -> list[dict]:
+    """CSVファイルを読み込んでリスト化"""
+    if not os.path.exists(filepath):
+        return []
+    with open(filepath, "r", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+@app.get("/logs/query")
+def get_query_log(key: str = ""):
+    """質問回数ログを表示"""
+    _verify_key(key)
+    rows = _read_csv(QUERY_LOG_FILE)
+    return {"total": len(rows), "logs": rows}
+
+
+@app.get("/logs/nofaq")
+def get_nofaq_log(key: str = ""):
+    """FAQ該当なしログを表示"""
+    _verify_key(key)
+    rows = _read_csv(NOFAQ_LOG_FILE)
+    return {"total": len(rows), "logs": rows}
